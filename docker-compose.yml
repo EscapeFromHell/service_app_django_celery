@@ -29,7 +29,7 @@ services:
     image: redis:7.0.5-alpine
     hostname: redis
 
-  worker:
+  worker-1:
     build:
       context: .
     hostname: worker
@@ -41,6 +41,31 @@ services:
       - redis
     depends_on:
       - redis
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_NAME=db
+      - DB_USER=user
+      - DB_PASSWORD=password
+
+  worker-2:
+    build:
+      context: .
+    hostname: worker
+    entrypoint: celery
+    command: -A celery_app.app worker --loglevel=info
+    volumes:
+      - ./service:/service
+    links:
+      - redis
+    depends_on:
+      - redis
+      - database
+    environment:
+      - DB_HOST=database
+      - DB_NAME=db
+      - DB_USER=user
+      - DB_PASSWORD=password
 
   flower:
     build:
